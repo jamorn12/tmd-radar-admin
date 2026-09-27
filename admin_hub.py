@@ -13,10 +13,11 @@ GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
 REPO_OWNER = st.secrets.get("REPO_OWNER", "jamorn12")
 REPO_NAME = st.secrets.get("REPO_NAME", "tmd-radar-archive")
 
-HEADERS = {
-    "Authorization": f"Bearer {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github+json"
-}
+# ส่ง Authorization เฉพาะเมื่อมี token จริง — ถ้าส่ง "Bearer " ว่าง ๆ GitHub ตอบ 401 (API) และ 404 (raw)
+# ทำให้ภาพตัวอย่างและขนาด repo หายหมด ทั้งที่ repo เป็น public อ่านได้โดยไม่ต้องใช้ token
+HEADERS = {"Accept": "application/vnd.github+json"}
+if GITHUB_TOKEN.strip():
+    HEADERS["Authorization"] = f"Bearer {GITHUB_TOKEN.strip()}"
 
 # -------------------------------------------------------------
 # API & Data Helper Functions
@@ -194,7 +195,7 @@ def render_dashboard():
             status_badge = "✅ สำเร็จ (Success)" if latest_run_status == "success" else f"⚠️ {latest_run_status.title()}"
             st.write(f"**สถานะบอทล่าสุด:** {status_badge}")
             
-            if st.button("🔄 รีเฟรชทันที (Refresh)", use_container_width=True):
+            if st.button("🔄 รีเฟรชทันที (Refresh)", width='stretch'):
                 st.cache_data.clear()
                 st.rerun()
 
@@ -215,14 +216,14 @@ def render_dashboard():
             with c1:
                 st.markdown(f"**Raw TMD Image** ({timestamp_str} UTC)")
                 if raw_img_bytes:
-                    st.image(raw_img_bytes, use_container_width=True)
+                    st.image(raw_img_bytes, width='stretch')
                 else:
                     st.error(f"ไม่พบไฟล์: {raw_path}")
 
             with c2:
                 st.markdown("**Processed Solid Image** (.png)")
                 if solid_img_bytes:
-                    st.image(solid_img_bytes, use_container_width=True)
+                    st.image(solid_img_bytes, width='stretch')
                 else:
                     st.warning(f"ยังไม่พบไฟล์: {matched_path}")
         else:
@@ -234,7 +235,7 @@ def render_dashboard():
     if not df_log.empty:
         st.dataframe(
             df_log.tail(15).iloc[::-1],
-            use_container_width=True,
+            width='stretch',
             hide_index=True
         )
     else:
