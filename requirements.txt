@@ -1,3 +1,6 @@
-streamlit
+streamlit>=1.50
 requests
 pandas
+altair
+numpy
+Pillow
